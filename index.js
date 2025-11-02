@@ -35,6 +35,7 @@ async function run() {
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const email = req.body.email;
+      console.log(email);
       const query = { email: email };
       const existingUser = await usersCollection.findOne(query);
 
@@ -126,3 +127,7 @@ async function run() {
 }
 
 run().catch(console.dir);
+
+app.listen(port, () => {
+  console.log(`Smart server is running on port: ${port}`);
+});
