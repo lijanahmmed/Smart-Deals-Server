@@ -40,7 +40,7 @@ async function run() {
 
       if (existingUser) {
         res.send({
-          message: "user already exits. do not need to insert again",
+          message: "User already exits. do not need to insert again",
         });
       } else {
         const result = await usersCollection.insertOne(newUser);
@@ -52,7 +52,6 @@ async function run() {
       // const projectFields = { title: 1, price_min: 1, price_max: 1, image: 1 }
       // const cursor = productsCollection.find().sort({ price_min: -1 }).skip(2).limit(2).project(projectFields);
 
-      console.log(req.query);
       const email = req.query.email;
       const query = {};
       if (email) {
