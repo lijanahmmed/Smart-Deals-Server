@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri =
-  "mongodb+srv://smartdbUser:JOFV2xVJ1Ri6UmrT@cluster0.vyznij5.mongodb.net/?appName=Cluster0";
+  "mongodb+srv://simpleDBUser:4YB0cNuMWV8m5loq@cluster0.3kkgkzf.mongodb.net/?appName=Cluster0";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -35,7 +35,6 @@ async function run() {
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const email = req.body.email;
-      console.log(email);
       const query = { email: email };
       const existingUser = await usersCollection.findOne(query);
 
@@ -123,6 +122,7 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
+    // await client.close();
   }
 }
 
