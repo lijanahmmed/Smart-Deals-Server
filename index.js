@@ -3,14 +3,43 @@ const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
+const admin = require("firebase-admin");
 const port = process.env.PORT || 3000;
+
+const serviceAccount = require("./smart-deals-firebase-admin-key.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 // middleware
 app.use(cors());
 app.use(express.json());
 
-const uri =
-  `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.3kkgkzf.mongodb.net/?appName=Cluster0`;
+const logger = (req, res, next) => {
+  console.log("Login information");
+  next();
+};
+
+const verifyFireBaseToken = async (req, res, next) => {
+  console.log("something");
+  if (!req.headers.authorization) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const token = req.headers.authorization.split(" ")[1];
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+
+  try {
+    await admin.auth().verifyIdToken(token);
+    next();
+  } catch {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+};
+
+const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.3kkgkzf.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -109,7 +138,7 @@ async function run() {
     });
 
     // bids related apis
-    app.get("/bids", async (req, res) => {
+    app.get("/bids", logger, verifyFireBaseToken, async (req, res) => {
       const email = req.query.email;
       const query = {};
       if (email) {
