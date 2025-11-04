@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const admin = require("firebase-admin");
@@ -22,7 +23,6 @@ const logger = (req, res, next) => {
 };
 
 const verifyFireBaseToken = async (req, res, next) => {
-  console.log("something");
   if (!req.headers.authorization) {
     return res.status(401).send({ message: "unauthorized access" });
   }
@@ -33,6 +33,8 @@ const verifyFireBaseToken = async (req, res, next) => {
 
   try {
     await admin.auth().verifyIdToken(token);
+    req.token_email = userInfo.email;
+    console.log("after token validation", userInfo);
     next();
   } catch {
     return res.status(401).send({ message: "unauthorized access" });
@@ -62,6 +64,14 @@ async function run() {
     const bidsCollection = db.collection("bids");
     const usersCollection = db.collection("users");
 
+    app.post("/getToken", (req, res) => {
+      const loggedUser = req.body;
+      const token = jwt.sign(loggedUser, process.env.JWT_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token: token });
+    });
+
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const email = req.body.email;
@@ -79,9 +89,6 @@ async function run() {
     });
 
     app.get("/products", async (req, res) => {
-      // const projectFields = { title: 1, price_min: 1, price_max: 1, image: 1 }
-      // const cursor = productsCollection.find().sort({ price_min: -1 }).skip(2).limit(2).project(projectFields);
-
       const email = req.query.email;
       const query = {};
       if (email) {
@@ -142,6 +149,10 @@ async function run() {
       const email = req.query.email;
       const query = {};
       if (email) {
+        // if (email !== req.token_email) {
+        //   return res.status(403).send({ message: "forbidden access" });
+        // }
+
         query.buyer_email = email;
       }
 
